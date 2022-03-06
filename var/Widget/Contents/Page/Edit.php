@@ -113,8 +113,7 @@ class Widget_Contents_Page_Edit extends Widget_Contents_Post_Edit implements Wid
                 $this->response->throwJson(array(
                     'success'   =>  1,
                     'time'      =>  $created->format('H:i:s A'),
-                    'cid'       =>  $this->cid,
-                    'draftId'   =>  $this->draft['cid']
+                    'cid'       =>  $this->cid
                 ));
             } else {
                 /** 设置提示信息 */
