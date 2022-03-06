@@ -70,6 +70,11 @@ class Widget_Init extends Typecho_Widget
         $this->response->setCharset($options->charset);
         $this->response->setContentType($options->contentType);
 
+        /** 默认时区 */
+        if (function_exists("ini_get") && !ini_get("date.timezone") && function_exists("date_default_timezone_set")) {
+            @date_default_timezone_set('UTC');
+        }
+
         /** 初始化时区 */
         Typecho_Date::setTimezoneOffset($options->timezone);
 

@@ -54,24 +54,13 @@ class Helper
         $className = "Widget_Abstract_{$table}";
         $key = $keys[$table];
         $db = Typecho_Db::get();
-        $widget = new $className(Typecho_Request::getInstance(), Typecho_Widget_Helper_Empty::getInstance());
+        $widget = new $className;
         
         $db->fetchRow(
             $widget->select()->where("{$key} = ?", $pkId)->limit(1),
                 array($widget, 'push'));
 
         return $widget;
-    }
-
-    /**
-     * 请求异步服务
-     *
-     * @param $method
-     * @param $params
-     */
-    public static function requestService($method, $params)
-    {
-        Typecho_Widget::widget('Widget_Service')->requestService($method, $params);
     }
 
     /**

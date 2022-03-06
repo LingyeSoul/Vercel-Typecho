@@ -218,8 +218,7 @@ class Widget_Archive extends Widget_Abstract_Contents
         $this->parameter->setDefault(array(
             'pageSize'          =>  $this->options->pageSize,
             'type'              =>  NULL,
-            'checkPermalink'    =>  true,
-            'preview'           =>  false
+            'checkPermalink'    =>  true
         ));
 
         /** 用于判断是路由调用还是外部调用 */
@@ -776,12 +775,12 @@ class Widget_Archive extends Widget_Abstract_Contents
         }
 
         /** 匹配缩略名 */
-        if (isset($this->request->slug) && !$this->parameter->preview) {
+        if (isset($this->request->slug)) {
             $select->where('table.contents.slug = ?', $this->request->slug);
         }
 
         /** 匹配时间 */
-        if (isset($this->request->year) && !$this->parameter->preview) {
+        if (isset($this->request->year)) {
             $year = $this->request->filter('int')->year;
 
             $fromMonth = 1;
@@ -810,7 +809,7 @@ class Widget_Archive extends Widget_Abstract_Contents
         }
 
         /** 保存密码至cookie */
-        if ($this->request->isPost() && isset($this->request->protectPassword) && !$this->parameter->preview) {
+        if ($this->request->isPost() && isset($this->request->protectPassword)) {
             $this->security->protect();
             Typecho_Cookie::set('protectPassword', $this->request->protectPassword, 0);
         }
@@ -820,8 +819,8 @@ class Widget_Archive extends Widget_Abstract_Contents
         $this->query($select);
 
         if (!$this->have() 
-            || (isset($this->request->category) && $this->category != $this->request->category && !$this->parameter->preview)
-            || (isset($this->request->directory) && $this->request->directory != implode('/', $this->directory) && !$this->parameter->preview)) {
+            || (isset($this->request->category) && $this->category != $this->request->category)
+            || (isset($this->request->directory) && $this->request->directory != implode('/', $this->directory))) {
             if (!$this->_invokeFromOutside) {
                 /** 对没有索引情况下的判断 */
                 throw new Typecho_Widget_Exception(_t('请求的地址不存在'), 404);
@@ -861,7 +860,7 @@ class Widget_Archive extends Widget_Abstract_Contents
         }
 
         /** 设置归档类型 */
-        list($this->_archiveType) = explode('_', $this->type);
+        $this->_archiveType = $this->type;
 
         /** 设置归档缩略名 */
         $this->_archiveSlug = ('post' == $this->type || 'attachment' == $this->type) ? $this->cid : $this->slug;
@@ -1334,28 +1333,24 @@ class Widget_Archive extends Widget_Abstract_Contents
 
         /** 定时发布功能 */
         if (!$selectPlugged) {
-            if ($this->parameter->preview) {
-                $select = $this->select();
-            } else {
-                if ('post' == $this->parameter->type || 'page' == $this->parameter->type) {
-                    if ($this->user->hasLogin()) {
-                        $select = $this->select()->where('table.contents.status = ? OR table.contents.status = ? OR
+            if ('post' == $this->parameter->type || 'page' == $this->parameter->type) {
+                if ($this->user->hasLogin()) {
+                    $select = $this->select()->where('table.contents.status = ? OR table.contents.status = ? OR
                             (table.contents.status = ? AND table.contents.authorId = ?)',
                             'publish', 'hidden', 'private', $this->user->uid);
-                    } else {
-                        $select = $this->select()->where('table.contents.status = ? OR table.contents.status = ?',
-                            'publish', 'hidden');
-                    }
                 } else {
-                    if ($this->user->hasLogin()) {
-                        $select = $this->select()->where('table.contents.status = ? OR
-                            (table.contents.status = ? AND table.contents.authorId = ?)', 'publish', 'private', $this->user->uid);
-                    } else {
-                        $select = $this->select()->where('table.contents.status = ?', 'publish');
-                    }
+                    $select = $this->select()->where('table.contents.status = ? OR table.contents.status = ?',
+                            'publish', 'hidden');
                 }
-                $select->where('table.contents.created < ?', $this->options->time);
+            } else {
+                if ($this->user->hasLogin()) {
+                    $select = $this->select()->where('table.contents.status = ? OR
+                            (table.contents.status = ? AND table.contents.authorId = ?)', 'publish', 'private', $this->user->uid);
+                } else {
+                    $select = $this->select()->where('table.contents.status = ?', 'publish');
+                }
             }
+            $select->where('table.contents.created < ?', $this->options->time);
         }
 
         /** handle初始化 */
@@ -1366,7 +1361,7 @@ class Widget_Archive extends Widget_Abstract_Contents
         $this->_feedRssUrl = $this->options->feedRssUrl;
         $this->_feedAtomUrl = $this->options->feedAtomUrl;
         $this->_keywords = $this->options->keywords;
-        $this->_description = $this->options->description;
+        $this->_description = $this->options->description; 
 
         if (isset($handles[$this->parameter->type])) {
             $handle = $handles[$this->parameter->type];
@@ -1374,11 +1369,10 @@ class Widget_Archive extends Widget_Abstract_Contents
         } else {
             $hasPushed = $this->pluginHandle()->handle($this->parameter->type, $this, $select);
         }
-
+        
         /** 初始化皮肤函数 */
         $functionsFile = $this->_themeDir . 'functions.php';
-        if ((!$this->_invokeFromOutside || $this->parameter->type == 404 || $this->parameter->preview)
-            && file_exists($functionsFile)) {
+        if ((!$this->_invokeFromOutside || $this->parameter->type == 404) && file_exists($functionsFile)) {
             require_once $functionsFile;
             if (function_exists('themeInit')) {
                 themeInit($this);

@@ -138,7 +138,6 @@ class Typecho_Router
                         $widget->{$route['action']}();
                     }
 
-                    Typecho_Response::callback();
                     return;
 
                 } catch (Exception $e) {

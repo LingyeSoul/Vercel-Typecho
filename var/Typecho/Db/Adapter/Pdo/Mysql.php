@@ -27,19 +27,6 @@ class Typecho_Db_Adapter_Pdo_Mysql extends Typecho_Db_Adapter_Pdo
     }
 
     /**
-     * 清空数据表
-     *
-     * @param string $table
-     * @param mixed $handle 连接对象
-     * @return mixed|void
-     * @throws Typecho_Db_Exception
-     */
-    public function truncate($table, $handle)
-    {
-        $this->query('TRUNCATE TABLE ' . $this->quoteColumn($table), $handle);
-    }
-
-    /**
      * 初始化数据库
      *
      * @param Typecho_Config $config 数据库配置
