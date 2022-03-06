@@ -88,13 +88,6 @@ class Typecho_Response
     private static $_instance = null;
 
     /**
-     * 结束前回调函数
-     *
-     * @var array
-     */
-    private static $_callbacks = array();
-
-    /**
      * 获取单例句柄
      *
      * @access public
@@ -131,33 +124,6 @@ class Typecho_Response
         } else {
             return preg_match("/^[^<>]+$/is", $message) ? $message : '<![CDATA[' . $message . ']]>';
         }
-    }
-
-    /**
-     * 结束前的统一回调函数
-     */
-    public static function callback()
-    {
-        static $called;
-
-        if ($called) {
-            return;
-        }
-
-        $called = true;
-        foreach (self::$_callbacks as $callback) {
-            call_user_func($callback);
-        }
-    }
-
-    /**
-     * 新增回调
-     *
-     * @param $callback
-     */
-    public static function addCallback($callback)
-    {
-        self::$_callbacks[] = $callback;
     }
 
     /**
@@ -245,7 +211,6 @@ class Typecho_Response
         '</response>';
 
         /** 终止后续输出 */
-        self::callback();
         exit;
     }
 
@@ -264,7 +229,6 @@ class Typecho_Response
         echo Json::encode($message);
 
         /** 终止后续输出 */
-        self::callback();
         exit;
     }
 
@@ -282,11 +246,9 @@ class Typecho_Response
         $location = Typecho_Common::safeUrl($location);
 
         if ($isPermanently) {
-            self::callback();
             header('Location: ' . $location, false, 301);
             exit;
         } else {
-            self::callback();
             header('Location: ' . $location, false, 302);
             exit;
         }
@@ -334,7 +296,6 @@ class Typecho_Response
             $this->redirect($default);
         }
 
-        self::callback();
         exit;
     }
 }
